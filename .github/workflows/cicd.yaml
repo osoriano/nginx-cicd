@@ -54,7 +54,7 @@ jobs:
       contents: read
     environment:
       name: dev
-      url: https://${{ env.IMAGE_BASE_NAME }}.osoriano.com
+      url: https://${{ env.IMAGE_BASE_NAME }}-dev.osoriano.com
     concurrency:
       group: dev
     steps:
@@ -71,3 +71,57 @@ jobs:
            manifests: |
               k8s/github/dev
            images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
+  deploy-to-staging:
+    needs: [build-test-publish]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: staging
+      url: https://${{ env.IMAGE_BASE_NAME }}-staging.osoriano.com
+    concurrency:
+      group: staging
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v4
+      - name: Set k8s context
+        uses: azure/k8s-set-context@v4
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Deploy to the staging environment
+        uses: Azure/k8s-deploy@v5
+        with:
+           namespace: ${{ env.IMAGE_BASE_NAME }}
+           manifests: |
+              k8s/github/staging
+           images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
+      - name: Run integration tests
+        run: sleep 15s
+  deploy-to-prod:
+    needs: [build-test-publish]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: prod
+      url: https://${{ env.IMAGE_BASE_NAME }}.osoriano.com
+    concurrency:
+      group: prod
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v4
+      - name: Set k8s context
+        uses: azure/k8s-set-context@v4
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Deploy to the prod environment
+        uses: Azure/k8s-deploy@v5
+        with:
+           namespace: ${{ env.IMAGE_BASE_NAME }}
+           manifests: |
+              k8s/github/prod
+           images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
+      - name: Run integration tests
+        run: sleep 15s
