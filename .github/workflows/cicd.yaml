@@ -99,7 +99,7 @@ jobs:
       - name: Run integration tests
         run: sleep 15s
   deploy-to-prod:
-    needs: [build-test-publish]
+    needs: [deploy-to-staging]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
