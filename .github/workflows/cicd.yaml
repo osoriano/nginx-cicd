@@ -66,6 +66,7 @@ jobs:
       - name: Deploy to the dev environment
         uses: Azure/k8s-deploy@v5
         with:
+           namespace: ${{ env.IMAGE_NAME }}
            manifests: |
               k8s/github/dev
            images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
