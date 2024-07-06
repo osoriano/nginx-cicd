@@ -57,6 +57,8 @@ jobs:
     concurrency:
       group: dev
     steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v4
       - name: Set k8s context
         uses: azure/k8s-set-context@v4
         with:
