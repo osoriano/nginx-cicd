@@ -6,7 +6,7 @@ on:
 env:
   # Use ghcr, in addition to Docker Hub
   GH_REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-github
 jobs:
   build-test-publish:
     runs-on: ubuntu-latest
@@ -45,3 +45,25 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: VERSION=${{ github.sha }}
+  deploy-to-dev:
+    needs: [build-test-publish]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: dev
+      url: https://${{ env.IMAGE_NAME }}.osoriano.com
+    concurrency:
+      group: dev
+    steps:
+      - name: Set k8s context
+        uses: azure/k8s-set-context@v4
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Deploy to the dev environment
+        uses: Azure/k8s-deploy@v5
+        with:
+           manifests: |
+              k8s/github/dev
+           images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
