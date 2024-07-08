@@ -5,7 +5,7 @@ env:
   GH_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-github
 jobs:
-  build-test-publish:
+  build-test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,7 +21,7 @@ jobs:
           tags: |
             type=sha,format=long
             type=ref,event=pr
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
