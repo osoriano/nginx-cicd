@@ -1,5 +1,4 @@
 on:
-  pull_request: {}
   push:
     branches:
       - main
@@ -36,19 +35,17 @@ jobs:
           tags: |
             type=sha,format=long
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: VERSION=${{ github.sha }}
   deploy-to-dev:
     needs: [build-test-publish]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -73,7 +70,6 @@ jobs:
            images: '${{ env.IMAGE_NAME }}:sha-${{ github.sha }}'
   deploy-to-staging:
     needs: [build-test-publish]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -100,7 +96,6 @@ jobs:
         run: sleep 15s
   deploy-to-prod:
     needs: [deploy-to-staging]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
