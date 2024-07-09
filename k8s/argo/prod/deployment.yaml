@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-prod
+  namespace: nginx-cicd-argo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-prod
+  template:
+    metadata:
+      labels:
+        app: nginx-prod
+    spec:
+      containers:
+      - name: nginx
+        image: osoriano/nginx-cicd-argo:47e6e3d98e328c543e10ab54fc384133ab72800a
+        ports:
+        - name: traffic-port
+          containerPort: 80
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            port: traffic-port
+            path: /
