@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: osoriano/nginx-cicd:main
+        image: osoriano/nginx-cicd-github:main
         ports:
         - name: traffic-port
           containerPort: 80
